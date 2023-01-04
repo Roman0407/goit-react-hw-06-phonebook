@@ -1,32 +1,50 @@
-import { Profile } from './profile/Profile';
-import user from './profile/user.json';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { GlobalStyle } from './GlobalStyle';
-import { Container } from './Container.styled';
+import ContactForm from './ContactForm/ContactForm';
+import ContactList from './ContactList/ContactList';
+import Filter from './Filter/Filter';
+import css from './App.module.css';
 
-import { Statistics } from './statistics/Statistics';
-import statistics from './statistics/data.json';
+import { addContact, remove } from 'redux/slices/contactSlice';
+import { contactFilter } from 'redux/slices/filterSlice';
 
-import { ProfileFriends } from './friendList/FriendList'
-import friends from './friendList/friends.json';
+export default function App() {
+    const contacts = useSelector(state => state.contacts.contacts);
+    const filter = useSelector(state => state.filter.filter);
+    const dispatch = useDispatch();
 
+    const addContacts = ({ id, name, number }) => {
+        if (
+            contacts.find(contact => {
+                return contact.name === name;
+            })
+        ) {
+            return alert(`${name} is already in contacts`);
+        }
 
-import { ProfileTransactionHistory } from './transactionHistory/TransactionHistory'
-import transactions from './transactionHistory/transactions.json';
+        const contact = {
+            id,
+            name,
+            number,
+        };
+        dispatch(addContact(contact));
+    };
 
-const { username, tag, location, avatar, stats, } = user;
-export const App = () => {
-  return (
-    <Container>
-      <GlobalStyle />
-      <Profile username={username} tag={tag} location={location} avatar={avatar} stats={stats} />;
-      <Statistics title='Upload stats' stats={statistics} />;
-      <ProfileFriends friends={friends} />;
-      <ProfileTransactionHistory items={transactions} />;
-    </Container>
-  );
-};
+    const filterChange = e => {
+        dispatch(contactFilter(e.currentTarget.value));
+    };
 
+    const filterContact = contacts.filter(contact => {
+        return contact.name.toLowerCase().includes(filter.toLowerCase());
+    });
 
-
-
+    return (
+        <div className={css.container}>
+            <h1>Phonebook</h1>
+            <ContactForm addContacts={addContacts} />
+            <h2>Contacts</h2>
+            <Filter filter={filterChange} />
+            <ContactList filter={filterContact} onDeleteContact={remove} />
+        </div>
+    );
+}
